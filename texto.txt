@@ -1,0 +1,42 @@
+// ==UserScript==
+// @name         GTA V Web - Safe Fixer
+// @namespace    http://tampermonkey.net/
+// @version      2.2
+// @match        https://gta.deloskiyt.pl/*
+// @run-at       document-end
+// @grant        none
+// ==/UserScript==
+
+(function() {
+    'use strict';
+
+    let tempoTravado = 0;
+    const checkTravamento = setInterval(() => {
+        const pctElement = document.getElementById('pct');
+        if (!pctElement) return;
+
+        const pct = parseInt(pctElement.textContent) || 0;
+        if (pct >= 65) {
+            tempoTravado += 2;
+            if (tempoTravado >= 6) {
+                const btnSandbox = document.querySelector('button[data-act="sandbox"]');
+                const btnStory = document.querySelector('button[data-act="story"]');
+
+                if (btnSandbox && !btnSandbox.hidden && !btnSandbox.disabled) {
+                    btnSandbox.click();
+                } else if (btnStory && !btnStory.hidden && !btnStory.disabled) {
+                    btnStory.click();
+                }
+
+                try {
+                    const bc = new BroadcastChannel('game-progress');
+                    bc.postMessage({ world: true, compiling: false });
+                } catch (e) {}
+
+                clearInterval(checkTravamento);
+            }
+        } else {
+            tempoTravado = 0;
+        }
+    }, 2000);
+})();
